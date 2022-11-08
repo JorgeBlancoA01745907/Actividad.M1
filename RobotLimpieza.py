@@ -41,6 +41,7 @@ class RobotLimpiezaAgent(Agent):
                 if i.tipo == 0:
                     i.tipo = 3
                     limpia = True
+                    self.model.num_suciedad -= 1
         if len(cellmates) == 0 or limpia is False:
             new_position = self.random.choice(possible_steps)
             cellmates_newp = self.model.grid.get_cell_list_contents([new_position])
@@ -50,6 +51,7 @@ class RobotLimpiezaAgent(Agent):
                     self.model.movimientos += 1
             elif len(cellmates_newp) == 0:
                 self.model.grid.move_agent(self, new_position)
+                self.model.movimientos += 1
 
     def step(self):
         self.move()
@@ -57,7 +59,7 @@ class RobotLimpiezaAgent(Agent):
 
 class SuciedadAgent(Agent):
     '''
-    Representa a un agente o una celda con estado vivo (1) o muerto (0)
+    Representa a un agente o una celda sucia
     '''
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
@@ -70,6 +72,9 @@ class LimpiezaModel(Model):
     '''
     def __init__(self, width, height):
         self.num_agents = 3
+        self.width = width
+        self.height = height
+        self.max_steps = 20
         self.porcentajesucias = .20
         self.num_suciedad = round((width * height) * self.porcentajesucias)
         self.grid = MultiGrid(width, height, True)
@@ -95,5 +100,9 @@ class LimpiezaModel(Model):
             celdas.remove(pos)
 
     def step(self):
-        self.schedule.step()
-        print(self.movimientos)
+        if self.max_steps > 0:
+            self.schedule.step()
+            self.porcentajesucias = (100 * self.num_suciedad) // (self.width * self.height)
+            print(self.movimientos)
+            print(self.porcentajesucias)
+            self.max_steps -= 1

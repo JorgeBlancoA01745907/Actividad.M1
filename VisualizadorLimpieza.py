@@ -33,6 +33,7 @@ def agent_portrayal(agent):
     else:
         return portrayal3
 
+
 ancho = 10
 alto = 10
 grid = CanvasGrid(agent_portrayal, ancho, alto, 750, 750)
