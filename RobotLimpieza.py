@@ -20,20 +20,20 @@ class RobotLimpiezaAgent(Agent):
     '''
     Representa a un agente o una celda con estado vivo (1) o muerto (0)
     '''
-    def __init__(self, unique_id, model):
+    def __init__(self, uniqueID, model):
         '''
         Crea un agente con estado inicial aleatorio de 0 o 1, también se le
         asigna un identificador formado por una tupla (x,y).
         También se define un nuevo estado cuyo valor será definido por las
         reglas mencionadas arriba.
         '''
-        super().__init__(unique_id, model)
+        super().__init__(uniqueID, model)
         self.tipo = 1
         self.movimientos = 0
-        self.suciedad = self.model.num_suciedad
+        self.suciedad = self.model.numSuciedad
 
     def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
+        possibleSteps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
             include_center=False)
@@ -44,16 +44,16 @@ class RobotLimpiezaAgent(Agent):
                 if i.tipo == 0:
                     i.tipo = 3
                     limpia = True
-                    self.model.num_suciedad -= 1
+                    self.model.numSuciedad -= 1
         if len(cellmates) == 0 or limpia is False:
-            new_position = self.random.choice(possible_steps)
-            cellmates_newp = self.model.grid.get_cell_list_contents([new_position])
-            if len(cellmates_newp) == 1:
-                if cellmates_newp[0].tipo != 1:
-                    self.model.grid.move_agent(self, new_position)
+            newPosition = self.random.choice(possibleSteps)
+            cellmatesNewp = self.model.grid.get_cell_list_contents([newPosition])
+            if len(cellmatesNewp) == 1:
+                if cellmatesNewp[0].tipo != 1:
+                    self.model.grid.move_agent(self, newPosition)
                     self.movimientos += 1
-            elif len(cellmates_newp) == 0:
-                self.model.grid.move_agent(self, new_position)
+            elif len(cellmatesNewp) == 0:
+                self.model.grid.move_agent(self, newPosition)
                 self.movimientos += 1
 
     def step(self):
@@ -64,8 +64,8 @@ class SuciedadAgent(Agent):
     '''
     Representa a un agente o una celda sucia
     '''
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self, uniqueID, model):
+        super().__init__(uniqueID, model)
         self.tipo = 0
 
 
@@ -74,27 +74,27 @@ class LimpiezaModel(Model):
     Define el modelo del juego de la vida.
     '''
     def __init__(self, width, height, agents, dirty, steps):
-        self.num_agents = agents
+        self.numAgents = agents
         self.width = width
         self.height = height
-        self.max_steps = steps
-        self.porcentajesucias = dirty
-        self.num_suciedad = round((width * height) * self.porcentajesucias)
+        self.maxSteps = steps
+        self.porcentajeSucias = dirty
+        self.numSuciedad = round((width * height) * self.porcentajeSucias)
         self.grid = MultiGrid(width, height, True)
         self.schedule = SimultaneousActivation(self)
         self.running = True  # Para la visualizacion usando navegador
         self.movimientos = 0
         celdas = []
         self.datacollectorR = DataCollector(
-            model_reporters={"Total Movements": LimpiezaModel.calculate_movements},
+            model_reporters={"Total Movements": LimpiezaModel.calculoMovements},
             agent_reporters={}
         )
         self.datacollectorS = DataCollector(
-            model_reporters={"Total Dirty": LimpiezaModel.calculate_suciedad},
+            model_reporters={"Total Dirty": LimpiezaModel.calculoSuciedad},
             agent_reporters={}
         )
 
-        for i in range(self.num_agents):
+        for i in range(self.numAgents):
             a = RobotLimpiezaAgent(i, self)
             self.schedule.add(a)
             self.grid.place_agent(a, (1, 1))
@@ -102,7 +102,7 @@ class LimpiezaModel(Model):
         for (content, x, y) in self.grid.coord_iter():
             celdas.append([x, y])
 
-        for i in range(self.num_agents, (self.num_suciedad + self.num_agents)):
+        for i in range(self.numAgents, (self.numSuciedad + self.numAgents)):
             a = SuciedadAgent(i, self)
             self.schedule.add(a)
             # Add the agent to a random grid cell
@@ -110,24 +110,24 @@ class LimpiezaModel(Model):
             self.grid.place_agent(a, (pos[0], pos[1]))
             celdas.remove(pos)
 
-    def calculate_movements(model):
-        total_movements = 0
+    def calculoMovements(model):
+        totalMovements = 0
         robots = [agent for agent in model.schedule.agents if agent.tipo == 1]
         movements = [agent.movimientos for agent in robots]
         for x in movements:
-            total_movements += x
-        return total_movements
+            totalMovements += x
+        return totalMovements
 
-    def calculate_suciedad(model):
+    def calculoSuciedad(model):
         suciedad = [agent for agent in model.schedule.agents if agent.tipo == 0]
         return len(suciedad)
 
     def step(self):
-        if self.max_steps > 0 and self.porcentajesucias > 0:
+        if self.maxSteps > 0 and self.porcentajeSucias > 0:
             self.schedule.step()
-            self.porcentajesucias = (100 * self.num_suciedad) // (self.width * self.height)
+            self.porcentajeSucias = (100 * self.numSuciedad) // (self.width * self.height)
             print(self.movimientos)
-            print(self.porcentajesucias)
-            self.max_steps -= 1
+            print(self.porcentajeSucias)
+            self.maxSteps -= 1
         self.datacollectorR.collect(self)
         self.datacollectorS.collect(self)
