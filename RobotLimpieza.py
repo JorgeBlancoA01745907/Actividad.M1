@@ -13,6 +13,7 @@ from mesa.space import MultiGrid
 
 from mesa.time import SimultaneousActivation
 import numpy as np
+from mesa.datacollection import DataCollector
 
 
 class RobotLimpiezaAgent(Agent):
@@ -28,6 +29,8 @@ class RobotLimpiezaAgent(Agent):
         '''
         super().__init__(unique_id, model)
         self.tipo = 1
+        self.movimientos = 0
+        self.suciedad = self.model.num_suciedad
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -48,10 +51,10 @@ class RobotLimpiezaAgent(Agent):
             if len(cellmates_newp) == 1:
                 if cellmates_newp[0].tipo != 1:
                     self.model.grid.move_agent(self, new_position)
-                    self.model.movimientos += 1
+                    self.movimientos += 1
             elif len(cellmates_newp) == 0:
                 self.model.grid.move_agent(self, new_position)
-                self.model.movimientos += 1
+                self.movimientos += 1
 
     def step(self):
         self.move()
@@ -70,18 +73,26 @@ class LimpiezaModel(Model):
     '''
     Define el modelo del juego de la vida.
     '''
-    def __init__(self, width, height):
-        self.num_agents = 3
+    def __init__(self, width, height, agents, dirty, steps):
+        self.num_agents = agents
         self.width = width
         self.height = height
-        self.max_steps = 20
-        self.porcentajesucias = .20
+        self.max_steps = steps
+        self.porcentajesucias = dirty
         self.num_suciedad = round((width * height) * self.porcentajesucias)
         self.grid = MultiGrid(width, height, True)
         self.schedule = SimultaneousActivation(self)
         self.running = True  # Para la visualizacion usando navegador
         self.movimientos = 0
         celdas = []
+        self.datacollectorR = DataCollector(
+            model_reporters={"Total Movements": LimpiezaModel.calculate_movements},
+            agent_reporters={}
+        )
+        self.datacollectorS = DataCollector(
+            model_reporters={"Total Dirty": LimpiezaModel.calculate_suciedad},
+            agent_reporters={}
+        )
 
         for i in range(self.num_agents):
             a = RobotLimpiezaAgent(i, self)
@@ -99,10 +110,24 @@ class LimpiezaModel(Model):
             self.grid.place_agent(a, (pos[0], pos[1]))
             celdas.remove(pos)
 
+    def calculate_movements(model):
+        total_movements = 0
+        robots = [agent for agent in model.schedule.agents if agent.tipo == 1]
+        movements = [agent.movimientos for agent in robots]
+        for x in movements:
+            total_movements += x
+        return total_movements
+
+    def calculate_suciedad(model):
+        suciedad = [agent for agent in model.schedule.agents if agent.tipo == 0]
+        return len(suciedad)
+
     def step(self):
-        if self.max_steps > 0:
+        if self.max_steps > 0 and self.porcentajesucias > 0:
             self.schedule.step()
             self.porcentajesucias = (100 * self.num_suciedad) // (self.width * self.height)
             print(self.movimientos)
             print(self.porcentajesucias)
             self.max_steps -= 1
+        self.datacollectorR.collect(self)
+        self.datacollectorS.collect(self)
