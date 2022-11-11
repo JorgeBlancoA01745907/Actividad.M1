@@ -38,9 +38,9 @@ def agent_portrayal(agent):
 
 ancho = 10
 alto = 10
-agentes = 3
+agentes = 5
 porcentaje_sucias = .20
-pasos = 100
+pasos = 200
 grid = CanvasGrid(agent_portrayal, ancho, alto, 750, 750)
 total_movements_graph = ChartModule([{"Label": "Total Movements", "Color": "Green"}], data_collector_name='datacollectorR')
 total_dirty_graph = ChartModule([{"Label": "Total Dirty", "Color": "Red"}], data_collector_name='datacollectorS')
