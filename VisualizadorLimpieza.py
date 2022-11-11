@@ -2,7 +2,8 @@
 Visualizador del Robot de Limpieza
 Autores: Jorge Isidro Blanco Martinez
          Christian Parrish Gutiérrez Arrieta
-Noviembre 11, 2022
+Creación: Noviembre 6, 2022
+Úlrima modificación: Noviembre 11, 2022
 """
 from RobotLimpieza import *
 from mesa.visualization.modules import CanvasGrid
@@ -11,6 +12,9 @@ from mesa.visualization.modules import ChartModule
 
 
 def agent_portrayal(agent):
+    '''
+    Define el aspecto de los agentes
+    '''
     portrayal = {"Shape": "circle",
                  "Filled": "true",
                  "Layer": 0,
@@ -47,6 +51,6 @@ total_dirty_graph = ChartModule([{"Label": "Total Dirty", "Color": "Red"}], data
 server = ModularServer(LimpiezaModel,
                        [grid, total_movements_graph, total_dirty_graph],
                        "Robot de Limpieza",
-                       {"width":ancho, "height":alto, "agents": agentes, "dirty": porcentaje_sucias, "steps": pasos})
+                       {"width": ancho, "height": alto, "agents": agentes, "dirty": porcentaje_sucias, "steps": pasos})
 server.port = 8521 # The default
 server.launch()

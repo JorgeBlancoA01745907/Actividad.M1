@@ -1,3 +1,10 @@
+"""
+Definición de agentes y modelo de RobotLimpieza
+Autores: Jorge Isidro Blanco Martinez
+         Christian Parrish Gutiérrez Arrieta
+Creación: Noviembre 6, 2022
+Úlrima modificación: Noviembre 11, 2022
+"""
 # La clase `Model` se hace cargo de los atributos a nivel del modelo, maneja
 # los agentes.
 # Cada modelo puede contener múltiples agentes y todos ellos son instancias de
@@ -18,21 +25,21 @@ from mesa.datacollection import DataCollector
 
 class RobotLimpiezaAgent(Agent):
     '''
-    Representa a un agente o una celda con estado vivo (1) o muerto (0)
+    Representa a un agente de limpieza
     '''
     def __init__(self, uniqueID, model):
         '''
-        Crea un agente con estado inicial aleatorio de 0 o 1, también se le
-        asigna un identificador formado por una tupla (x,y).
-        También se define un nuevo estado cuyo valor será definido por las
-        reglas mencionadas arriba.
+        Crea un agente de tipo limpiador (1)
         '''
         super().__init__(uniqueID, model)
         self.tipo = 1
         self.movimientos = 0
-        self.suciedad = self.model.numSuciedad
 
     def move(self):
+        '''
+        Función de movimiento del agente, si se encuentra en una casilla sucia, aspira
+        si no, se mueve a una casilla aleatoria de las posibles
+        '''
         possibleSteps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
@@ -58,23 +65,33 @@ class RobotLimpiezaAgent(Agent):
                 self.movimientos += 1
 
     def step(self):
+        '''
+        Define lo que hace el agente en cada paso
+        '''
         self.move()
 
 
 class SuciedadAgent(Agent):
     '''
-    Representa a un agente o una celda sucia
+    Representa a un agente de suciedad o una celda sucia
     '''
     def __init__(self, uniqueID, model):
+        '''
+        Crea un agente de tipo suciedad (0)
+        '''
         super().__init__(uniqueID, model)
         self.tipo = 0
 
 
 class LimpiezaModel(Model):
     '''
-    Define el modelo del juego de la vida.
+    Define el modelo.
     '''
     def __init__(self, width, height, agents, dirty, steps):
+        '''
+        Inicializa el modelo tomando como parametros el ancho y largo de la cuadrícula, número de agentes, suciedad
+        y número máximo de pasos, además, inicializa las gráficas que se mostrarán en el visualizador
+        '''
         self.numAgents = agents
         self.width = width
         self.height = height
@@ -112,6 +129,9 @@ class LimpiezaModel(Model):
             celdas.remove(pos)
 
     def calculoMovements(model):
+        '''
+        Define la cantidad total de movimientos de los agentes para mostrar en la gráfica
+        '''
         totalMovements = 0
         robots = [agent for agent in model.schedule.agents if agent.tipo == 1]
         movements = [agent.movimientos for agent in robots]
@@ -120,11 +140,17 @@ class LimpiezaModel(Model):
         return totalMovements
 
     def calculoSuciedad(model):
+        '''
+        Define la cantidad de suciedad existente para mostrar en la gráfica
+        '''
         suciedad = [agent for agent in model.schedule.agents if
                     agent.tipo == 0]
         return len(suciedad)
 
     def step(self):
+        '''
+        Define lo que sucede cuando pasa un step
+        '''
         if self.maxSteps > 0 and self.porcentajeSucias > 0:
             self.schedule.step()
             self.porcentajeSucias = (100 * self.numSuciedad) // (
