@@ -22,24 +22,28 @@ from mesa.time import SimultaneousActivation
 import numpy as np
 from mesa.datacollection import DataCollector
 
+'''
+    Representa a un agente de limpieza
+'''
+
 
 class RobotLimpiezaAgent(Agent):
+
     '''
-    Representa a un agente de limpieza
+        Crea un agente de tipo limpiador (1)
     '''
     def __init__(self, uniqueID, model):
-        '''
-        Crea un agente de tipo limpiador (1)
-        '''
+
         super().__init__(uniqueID, model)
         self.tipo = 1
         self.movimientos = 0
 
+    '''
+        Función de movimiento del agente, si se encuentra en una casilla sucia,
+        aspira si no, se mueve a una casilla aleatoria de las posibles
+    '''
     def move(self):
-        '''
-        Función de movimiento del agente, si se encuentra en una casilla sucia, aspira
-        si no, se mueve a una casilla aleatoria de las posibles
-        '''
+
         possibleSteps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
@@ -64,34 +68,42 @@ class RobotLimpiezaAgent(Agent):
                 self.model.grid.move_agent(self, newPosition)
                 self.movimientos += 1
 
-    def step(self):
-        '''
+    '''
         Define lo que hace el agente en cada paso
-        '''
+    '''
+    def step(self):
+
         self.move()
 
-
-class SuciedadAgent(Agent):
     '''
     Representa a un agente de suciedad o una celda sucia
     '''
-    def __init__(self, uniqueID, model):
-        '''
+
+
+class SuciedadAgent(Agent):
+
+    '''
         Crea un agente de tipo suciedad (0)
-        '''
+    '''
+    def __init__(self, uniqueID, model):
+
         super().__init__(uniqueID, model)
         self.tipo = 0
 
-
-class LimpiezaModel(Model):
     '''
     Define el modelo.
     '''
+
+
+class LimpiezaModel(Model):
+
+    '''
+        Inicializa el modelo tomando como parametros el ancho y largo de la
+        cuadrícula, número de agentes, suciedad y número máximo de pasos,
+        además, inicializa las gráficas que se mostrarán en el visualizador
+    '''
     def __init__(self, width, height, agents, dirty, steps):
-        '''
-        Inicializa el modelo tomando como parametros el ancho y largo de la cuadrícula, número de agentes, suciedad
-        y número máximo de pasos, además, inicializa las gráficas que se mostrarán en el visualizador
-        '''
+
         self.numAgents = agents
         self.width = width
         self.height = height
@@ -128,10 +140,12 @@ class LimpiezaModel(Model):
             self.grid.place_agent(a, (pos[0], pos[1]))
             celdas.remove(pos)
 
+    '''
+        Define la cantidad total de movimientos de los agentes para mostrar en
+        la gráfica
+    '''
     def calculoMovements(model):
-        '''
-        Define la cantidad total de movimientos de los agentes para mostrar en la gráfica
-        '''
+
         totalMovements = 0
         robots = [agent for agent in model.schedule.agents if agent.tipo == 1]
         movements = [agent.movimientos for agent in robots]
@@ -139,18 +153,20 @@ class LimpiezaModel(Model):
             totalMovements += x
         return totalMovements
 
-    def calculoSuciedad(model):
-        '''
+    '''
         Define la cantidad de suciedad existente para mostrar en la gráfica
-        '''
+    '''
+    def calculoSuciedad(model):
+
         suciedad = [agent for agent in model.schedule.agents if
                     agent.tipo == 0]
         return len(suciedad)
 
-    def step(self):
-        '''
+    '''
         Define lo que sucede cuando pasa un step
-        '''
+    '''
+    def step(self):
+
         if self.maxSteps > 0 and self.porcentajeSucias > 0:
             self.schedule.step()
             self.porcentajeSucias = (100 * self.numSuciedad) // (
