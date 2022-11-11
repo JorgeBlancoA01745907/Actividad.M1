@@ -47,7 +47,8 @@ class RobotLimpiezaAgent(Agent):
                     self.model.numSuciedad -= 1
         if len(cellmates) == 0 or limpia is False:
             newPosition = self.random.choice(possibleSteps)
-            cellmatesNewp = self.model.grid.get_cell_list_contents([newPosition])
+            cellmatesNewp = self.model.grid.get_cell_list_contents(
+                            [newPosition])
             if len(cellmatesNewp) == 1:
                 if cellmatesNewp[0].tipo != 1:
                     self.model.grid.move_agent(self, newPosition)
@@ -119,13 +120,15 @@ class LimpiezaModel(Model):
         return totalMovements
 
     def calculoSuciedad(model):
-        suciedad = [agent for agent in model.schedule.agents if agent.tipo == 0]
+        suciedad = [agent for agent in model.schedule.agents if
+                    agent.tipo == 0]
         return len(suciedad)
 
     def step(self):
         if self.maxSteps > 0 and self.porcentajeSucias > 0:
             self.schedule.step()
-            self.porcentajeSucias = (100 * self.numSuciedad) // (self.width * self.height)
+            self.porcentajeSucias = (100 * self.numSuciedad) // (
+                                    self.width * self.height)
             print(self.movimientos)
             print(self.porcentajeSucias)
             self.maxSteps -= 1

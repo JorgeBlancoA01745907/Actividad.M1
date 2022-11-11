@@ -1,7 +1,8 @@
 """
-Visualizador del Juego de la Vida
-Autor: Jorge Rmz Uresti
-Octubre 8, 2021
+Visualizador del Robot de Limpieza
+Autores: Jorge Isidro Blanco Martinez
+         Christian Parrish Gutiérrez Arrieta
+Noviembre 11, 2022
 """
 from RobotLimpieza import *
 from mesa.visualization.modules import CanvasGrid
